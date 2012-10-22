@@ -16,5 +16,7 @@ for filename in args.source:
     while True:
     	line = source.readline()
     	if not line: break
-    	print 'line', ln, ':', line
+    	print 'ln', ln, ':', line
+    	ln += 1
+    print
     source.close()
