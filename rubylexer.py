@@ -10,13 +10,13 @@ parser.add_argument(
 args = parser.parse_args()
 for filename in args.source:
     sourcefile = filename
+    print "\n"
     print 'Ruby source file:', sourcefile
     source = file(sourcefile,'r')
     ln = 1
     while True:
     	line = source.readline()
     	if not line: break
-    	print 'ln', ln, ':', line
+    	print 'ln', ln, ':', line,
     	ln += 1
-    print
     source.close()
