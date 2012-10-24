@@ -6,7 +6,7 @@ parser = argparse.ArgumentParser(
     description='Parse the source Ruby program and analyze its lexical correctness')
 parser.add_argument(
     '--source', metavar='str', nargs='+', type=str,
-    help='A source to analyze')
+    help='A source to analyze', required=True)
 
 args = parser.parse_args()
 for filename in args.source:
