@@ -15,7 +15,11 @@ for filename in args.source:
     if re.search(".rb", sourcefile):
         print "\n"
         print 'Ruby source file:', sourcefile
-        source = file(sourcefile,'r')
+        try:
+            source = file(sourcefile,'r')
+        except IOError:
+            print sourcefile, "doesn't seem to exist. Please retry"
+            continue
         ln = 1
         while True:
         	line = source.readline()
