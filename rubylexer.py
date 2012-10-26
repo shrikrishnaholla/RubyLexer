@@ -9,24 +9,30 @@ parser.add_argument(
     help='A source to analyze', required=True)
 
 args = parser.parse_args()
+
 for filename in args.source:
 
     sourcefile = filename
-    if re.search(".rb", sourcefile):
+    if re.search(".rb", sourcefile):         # If the sourcefile contains '.rb', it's a ruby source file
         print "\n"
         print 'Ruby source file:', sourcefile
         try:
             source = file(sourcefile,'r')
-        except IOError:
+        except IOError:                      # If the input is invalid - file not found
             print sourcefile, "doesn't seem to exist. Please retry"
             continue
         ln = 1
         while True:
-        	line = source.readline()
-        	if not line: break
-        	print 'ln', ln, ':', line,
-        	ln += 1
+            line = source.readline()         # Read a line from the ruby source file
+            if not line: break
+            print 'ln', ln, ':', line,
+            ln += 1                          # Increment line number count
+            def tokenize(line):
+                tokens = line.split()    # Not enough - This splits only on the basis of whitespace characters
+                for token in tokens:     # You have the tokens - now you have to analyze them
+                    pass
+            tokenize(line)
         source.close()
 
-    else:
+    else:                                    # If the extension is not '.rb'
         print sourcefile, "is not a valid ruby source"
