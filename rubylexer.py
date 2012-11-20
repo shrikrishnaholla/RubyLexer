@@ -36,7 +36,18 @@ class SymTab:
 
     @staticmethod
     def printer(toklist, enumlist, tokidlist, index):
-        print toklist[index], '\t\t\t', enumlist[index], '\t', tokidlist[index]
+        print toklist[index], '\t\t\t', 
+        if enumlist[index] == 0:
+            print 'keyword',
+        elif enumlist[index] == 1:
+            print 'operator',
+        elif enumlist[index] == 2:
+            print 'constant',
+        elif enumlist[index] == 3:
+            print 'punctuation',
+        else:
+            print 'identifier',
+        print '\t\t\t\t', tokidlist[index]
         
     @staticmethod
     def classify(lists, string):
@@ -91,7 +102,7 @@ def main():
                 print sourcefile, "doesn't seem to exist. Please retry"
                 continue
             ln = 1
-            print 'Token','\t\t\t','Type','\t','Token ID'
+            print 'Token','\t\t\t','Type','\t\t\t\t','Token ID'
             for x in xrange(0, 35):
                 print '-',
             print
@@ -100,6 +111,9 @@ def main():
                 if not line: break
                 #print 'ln', ln, ':', line,      # print the line
                 ln += 1                          # Increment line number count
+                commbeg = line.find('#')         # Beginning of a comment
+                if not commbeg == -1:
+                    line = line[0:commbeg]
                 tokens = line.split()            # [HOWTO] This splits only on the basis of whitespace characters. Is it enough?
                 for token in tokens:
                     lists = [SymTab.toklist, SymTab.enumlist, SymTab.tokidlist, SymTab.kwlist, SymTab.oplist, SymTab.punctlist, SymTab.constlist, SymTab.tokidlist, SymTab.idlist]
