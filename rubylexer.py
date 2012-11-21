@@ -81,6 +81,38 @@ class SymTab:
 
         SymTab.printer(toklist, enumlist, tokidlist, toklist.index(string)) # Print the table
 
+def functionRecognizer(line):
+    """A function that recognizes functions' headers"""
+    obbeg = line.find('(')
+    # We split the function header into two parts
+    line1 = line[0:obbeg]                        # This is the first part - The function name
+    line2 = line[obbeg+1:line.find(')')]         # This is the second part - The parameter list
+    
+    tokens =[]
+    beforeob = line1.split()
+    # Parameter lists are usually separated by a comma and a space or just a comma.
+    # Because of this inconsistency, we handle the arglist in two parts
+    afterob = line2.split()                  # A list of parameters split on the basis of whitespace
+    params = []
+    paramlist = []
+    for parameter in afterob:
+        paramindex = parameter.find(',')
+        if not paramindex == -1:
+            paramlist = parameter.split(',')
+        else:                                # case of a single parameter
+            paramlist = [parameter]
+        for arg in paramlist:
+            params.append(arg)
+    # Add function name to list of tokens
+    for lexeme in beforeob:
+        tokens.append(lexeme)
+    # Add name of each parameter to the list of tokens
+    for lexeme in params:
+        tokens.append(lexeme)
+
+    return tokens
+
+
 def main():
     parser = argparse.ArgumentParser(
         description='Parse the source Ruby program and analyze its lexical correctness')
@@ -109,16 +141,21 @@ def main():
             while True:
                 line = source.readline()         # Read a line from the ruby source file
                 if not line: break
-                #print 'ln', ln, ':', line,      # print the line
+                # print 'ln', ln, ':', line,      # print the line
                 ln += 1                          # Increment line number count
                 commbeg = line.find('#')         # Beginning of a comment
                 if not commbeg == -1:
                     line = line[0:commbeg]       # Strip out the comment
-                tokens = line.split()            # [HOWTO] This splits only on the basis of whitespace characters. Need to remove brackets too
+
+                if not line.find('(') == -1:
+                    tokens = functionRecognizer(line)
+                
+                else:
+                    tokens = line.split()            # [HOWTO] This splits only on the basis of whitespace characters. Need to remove brackets too
                 # for string in tokens:
                 #     for symbol in SymTab.punctlist:
-                #         if re.search(symbol, string) != None: # [HOWTO] Now we know that the string has a symbol. Need to split the string and insert into the list again
-                #             pass
+                #         if string.find(symbol) != -1: # [HOWTO] Now we know that the string has a symbol. Need to split the string and insert into the list again
+                #             
                 for token in tokens:
                     lists = [SymTab.toklist, SymTab.enumlist, SymTab.tokidlist, SymTab.kwlist, SymTab.oplist, SymTab.punctlist, SymTab.constlist, SymTab.tokidlist, SymTab.idlist]
                     SymTab.classify(lists, token)       # Analyzes the tokens
