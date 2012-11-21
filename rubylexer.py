@@ -11,16 +11,15 @@ class TokenEnum(object):
     punctuation = 3
     identifier = 4
         
-
 class SymTab:
     """SymTab is the class holding the Symbol Table as a collection of three lists,
     one containing the tokens, another the type of the token, and the last one holding a unique ID for the token"""
     kwlist = ['BEGIN', 'END', '__ENCODING__', '__END__', '__FILE__', '__LINE__', 'alias', 'and', 'begin', 'break', 'case', 'class', 'def', 'defined?', 'do', 'else', 'elsif', 'end', 'ensure', 'false', 'for', 'if', 'in', 'module', 'next', 'nil', 'not', 'or', 'redo', 'rescue', 'retry', 'return', 'self', 'super', 'then', 'true', 'undef', 'unless', 'until', 'when', 'while', 'yield']
     oplist = ['+','-','*','/','=','%','**','==','!=','>','>=','<','<=','<=>','===','.eql?','equal?','+=','-=','*=','/=','%=','**=','&','|','^','~','<<','>>','&&','||','!']
-    punctlist = [',']
+    punctlist = [',','\"','(',')','{','}','#' '?', ':', ';']
     constlist = [str(i) for i in xrange(0,10)]
     # 1: [HOWTO] ensure longest match?
-    # 2: [HOWTO] implement ternary operator ?:
+    # 2: [HOWTO] recognize ternary operator ?:
     toklist = []    # List of tokens
     enumlist = []   # Corresponding list to toklist, enumerating the type of the token
     tokidlist = []  # Corresponding list to both toklist and enumlist which contains the unique token id
@@ -51,6 +50,7 @@ class SymTab:
         
     @staticmethod
     def classify(lists, string):
+        """Classify the token as a keyword, an operator, a punctuation mark, """
         toklist = lists[0]
         enumlist = lists[1]
         tokidlist = lists[2]
@@ -61,25 +61,25 @@ class SymTab:
         tokidlist = lists[7]
         idlist = lists[8]
         
-        if not string in toklist:
+        if not string in toklist:                                     # [TODO] Use regexes instead of string comparison
             toklist.append(string)
-            if string in kwlist:
+            if string in kwlist:                                      # The token is a keyword
                 enumlist.append(TokenEnum.keyword)
                 tokidlist.append('KW'+str(SymTab.randomIdGen(idlist)))
-            elif string in oplist:
+            elif string in oplist:                                    # The token is an operator
                 enumlist.append(TokenEnum.operator)
                 tokidlist.append('OP'+str(SymTab.randomIdGen(idlist)))
-            elif string in punctlist:
+            elif string in punctlist:                                 # The token is a punctuation
                 enumlist.append(TokenEnum.punctuation)
                 tokidlist.append('PN'+str(SymTab.randomIdGen(idlist)))
-            elif string in constlist:
+            elif string in constlist:                                 # The token is a constant
                 enumlist.append(TokenEnum.constant)
                 tokidlist.append('CT'+str(SymTab.randomIdGen(idlist)))
-            else:
+            else:                                                     # The token is an identifier
                 enumlist.append(TokenEnum.identifier)
                 tokidlist.append('ID'+str(SymTab.randomIdGen(idlist)))
 
-        SymTab.printer(toklist, enumlist, tokidlist, toklist.index(string))
+        SymTab.printer(toklist, enumlist, tokidlist, toklist.index(string)) # Print the table
 
 def main():
     parser = argparse.ArgumentParser(
@@ -102,8 +102,8 @@ def main():
                 print sourcefile, "doesn't seem to exist. Please retry"
                 continue
             ln = 1
-            print 'Token','\t\t\t','Type','\t\t\t\t','Token ID'
-            for x in xrange(0, 35):
+            print 'Token','\t\t\t','Type','\t\t\t\t\t','Token ID'
+            for x in xrange(0, 50):
                 print '-',
             print
             while True:
@@ -113,8 +113,12 @@ def main():
                 ln += 1                          # Increment line number count
                 commbeg = line.find('#')         # Beginning of a comment
                 if not commbeg == -1:
-                    line = line[0:commbeg]
-                tokens = line.split()            # [HOWTO] This splits only on the basis of whitespace characters. Is it enough?
+                    line = line[0:commbeg]       # Strip out the comment
+                tokens = line.split()            # [HOWTO] This splits only on the basis of whitespace characters. Need to remove brackets too
+                # for string in tokens:
+                #     for symbol in SymTab.punctlist:
+                #         if re.search(symbol, string) != None: # [HOWTO] Now we know that the string has a symbol. Need to split the string and insert into the list again
+                #             pass
                 for token in tokens:
                     lists = [SymTab.toklist, SymTab.enumlist, SymTab.tokidlist, SymTab.kwlist, SymTab.oplist, SymTab.punctlist, SymTab.constlist, SymTab.tokidlist, SymTab.idlist]
                     SymTab.classify(lists, token)       # Analyzes the tokens
