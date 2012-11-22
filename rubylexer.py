@@ -75,11 +75,44 @@ class SymTab:
             elif string in constlist:                                 # The token is a constant
                 enumlist.append(TokenEnum.constant)
                 tokidlist.append('CT'+str(SymTab.randomIdGen(idlist)))
-            else:                                                     # The token is an identifier
+            elif string.find('\"'):                                   # The token is a string constant
+                enumlist.append(TokenEnum.constant)
+                tokidlist.append('CT'+str(SymTab.randomIdGen(idlist)))
+            else:
                 enumlist.append(TokenEnum.identifier)
                 tokidlist.append('ID'+str(SymTab.randomIdGen(idlist)))
 
         SymTab.printer(toklist, enumlist, tokidlist, toklist.index(string)) # Print the table
+
+
+def stringconstRecognizer(line):
+    """Recognize string constants"""
+    strconstlist = []
+    templine = line
+    while True:
+        oquote = templine.find("\"")
+        if oquote != -1:
+            equote = templineline[oquote:len(line)]
+            eostr = equote.find("\"")
+            strconstlist.append(templine[oquote:eostr+1])
+            if eostr+1 != len(templine):
+                break
+            templine = templine[eostr+1:len(templine)]
+        else:
+            break
+
+    tokens = strconstlist
+    toklist = line.split()
+    for tok in toklist:
+        Flag = True
+        for strconst in strconstlist:
+            if strconst.find(tok) != -1:
+                Flag = False
+                break
+        if Flag:
+            tokens.append(tok)
+    return tokens
+
 
 def functionRecognizer(line):
     """A function that recognizes functions' headers"""
@@ -89,6 +122,8 @@ def functionRecognizer(line):
     line2 = line[obbeg+1:line.find(')')]         # This is the second part - The parameter list
     
     tokens =[]
+    if not line.find('\"') == -1:
+        tokens += stringconstRecognizer(line)
     beforeob = line1.split()
     # Parameter lists are usually separated by a comma and a space or just a comma.
     # Because of this inconsistency, we handle the arglist in two parts
@@ -121,9 +156,10 @@ def main():
         help='A source to analyze', required=True)
     
     args = parser.parse_args()
+    lists = [SymTab.toklist, SymTab.enumlist, SymTab.tokidlist, SymTab.kwlist, SymTab.oplist, SymTab.punctlist, SymTab.constlist, SymTab.tokidlist, SymTab.idlist]
     
     for filename in args.source:
-    
+
         sourcefile = filename
         if re.search(".rb", sourcefile):         # If the sourcefile contains '.rb', it's a ruby source file
             print "\n"
@@ -138,6 +174,7 @@ def main():
             for x in xrange(0, 50):
                 print '-',
             print
+            tokens =[]
             while True:
                 line = source.readline()         # Read a line from the ruby source file
                 if not line: break
@@ -148,8 +185,11 @@ def main():
                     line = line[0:commbeg]       # Strip out the comment
 
                 if not line.find('(') == -1:
-                    tokens = functionRecognizer(line)
-                
+                    tokens += functionRecognizer(line)
+
+                elif not line.find('\"') == -1:
+                    tokens += stringconstRecognizer(line)
+
                 else:
                     tokens = line.split()            # [HOWTO] This splits only on the basis of whitespace characters. Need to remove brackets too
                 # for string in tokens:
@@ -157,7 +197,6 @@ def main():
                 #         if string.find(symbol) != -1: # [HOWTO] Now we know that the string has a symbol. Need to split the string and insert into the list again
                 #             
                 for token in tokens:
-                    lists = [SymTab.toklist, SymTab.enumlist, SymTab.tokidlist, SymTab.kwlist, SymTab.oplist, SymTab.punctlist, SymTab.constlist, SymTab.tokidlist, SymTab.idlist]
                     SymTab.classify(lists, token)       # Analyzes the tokens
                 
             source.close()
