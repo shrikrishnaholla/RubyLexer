@@ -16,7 +16,7 @@ class SymTab:
     one containing the tokens, another the type of the token, and the last one holding a unique ID for the token"""
     kwlist = ['BEGIN', 'END', '__ENCODING__', '__END__', '__FILE__', '__LINE__', 'alias', 'and', 'begin', 'break', 'case', 'class', 'def', 'defined?', 'do', 'else', 'elsif', 'end', 'ensure', 'false', 'for', 'if', 'in', 'module', 'next', 'nil', 'not', 'or', 'redo', 'rescue', 'retry', 'return', 'self', 'super', 'then', 'true', 'undef', 'unless', 'until', 'when', 'while', 'yield']
     oplist = ['+','-','*','/','=','%','**','==','!=','>','>=','<','<=','<=>','===','.eql?','equal?','+=','-=','*=','/=','%=','**=','&','|','^','~','<<','>>','&&','||','!']
-    punctlist = [',','\"','(',')','{','}','#' '?', ':', ';']
+    punctlist = [',','(',')', '{','}', ':', ';']
     constlist = [str(i) for i in xrange(0,10)]
     # 1: [HOWTO] ensure longest match?
     # 2: [HOWTO] recognize ternary operator ?:
@@ -60,92 +60,52 @@ class SymTab:
         constlist = lists[6]
         tokidlist = lists[7]
         idlist = lists[8]
+        done = False
         
         if not string in toklist:                                     # [TODO] Use regexes instead of string comparison
             toklist.append(string)
-            if string in kwlist:                                      # The token is a keyword
-                enumlist.append(TokenEnum.keyword)
-                tokidlist.append('KW'+str(SymTab.randomIdGen(idlist)))
-            elif string in oplist:                                    # The token is an operator
-                enumlist.append(TokenEnum.operator)
-                tokidlist.append('OP'+str(SymTab.randomIdGen(idlist)))
-            elif string in punctlist:                                 # The token is a punctuation
-                enumlist.append(TokenEnum.punctuation)
-                tokidlist.append('PN'+str(SymTab.randomIdGen(idlist)))
-            elif string in constlist:                                 # The token is a constant
-                enumlist.append(TokenEnum.constant)
-                tokidlist.append('CT'+str(SymTab.randomIdGen(idlist)))
-            elif string.find('\"'):                                   # The token is a string constant
-                enumlist.append(TokenEnum.constant)
-                tokidlist.append('CT'+str(SymTab.randomIdGen(idlist)))
-            else:
-                enumlist.append(TokenEnum.identifier)
-                tokidlist.append('ID'+str(SymTab.randomIdGen(idlist)))
+            for kw in kwlist:                                         # The token is a keywor
+                if re.match(re.escape(kw),string):
+                    done = True
+                    enumlist.append(TokenEnum.keyword)
+                    tokidlist.append('KW'+str(SymTab.randomIdGen(idlist)))
+                    break
+
+            if not done:
+                for op in oplist:                                         # The token is an operator
+                    if re.match(re.escape(op),string):
+                        done = True
+                        enumlist.append(TokenEnum.operator)
+                        tokidlist.append('OP'+str(SymTab.randomIdGen(idlist)))
+                        break
+                
+            if not done:
+                for pn in punctlist:                                      # The token is a punctuation
+                    if re.match(re.escape(pn),string):
+                        done =True
+                        enumlist.append(TokenEnum.punctuation)
+                        tokidlist.append('PN'+str(SymTab.randomIdGen(idlist)))
+                        break
+            
+            if not done:
+                for cn in constlist:                                      # The token is a constant
+                    if re.match(re.escape(cn),string):
+                        done =True
+                        enumlist.append(TokenEnum.constant)
+                        tokidlist.append('CT'+str(SymTab.randomIdGen(idlist)))
+                        break
+
+                if len(re.findall("'",string)) > 0:
+                    enumlist.append(TokenEnum.constant)                   # The token is a string constant
+                    tokidlist.append('CT'+str(SymTab.randomIdGen(idlist)))
+                    done = True                         
+                    
+            if not done:
+                    enumlist.append(TokenEnum.identifier)
+                    tokidlist.append('ID'+str(SymTab.randomIdGen(idlist)))
 
         SymTab.printer(toklist, enumlist, tokidlist, toklist.index(string)) # Print the table
 
-
-def stringconstRecognizer(line):
-    """Recognize string constants"""
-    strconstlist = []
-    templine = line
-    while True:
-        oquote = templine.find("\"")
-        if oquote != -1:
-            equote = templineline[oquote:len(line)]
-            eostr = equote.find("\"")
-            strconstlist.append(templine[oquote:eostr+1])
-            if eostr+1 != len(templine):
-                break
-            templine = templine[eostr+1:len(templine)]
-        else:
-            break
-
-    tokens = strconstlist
-    toklist = line.split()
-    for tok in toklist:
-        Flag = True
-        for strconst in strconstlist:
-            if strconst.find(tok) != -1:
-                Flag = False
-                break
-        if Flag:
-            tokens.append(tok)
-    return tokens
-
-
-def functionRecognizer(line):
-    """A function that recognizes functions' headers"""
-    obbeg = line.find('(')
-    # We split the function header into two parts
-    line1 = line[0:obbeg]                        # This is the first part - The function name
-    line2 = line[obbeg+1:line.find(')')]         # This is the second part - The parameter list
-    
-    tokens =[]
-    if not line.find('\"') == -1:
-        tokens += stringconstRecognizer(line)
-    beforeob = line1.split()
-    # Parameter lists are usually separated by a comma and a space or just a comma.
-    # Because of this inconsistency, we handle the arglist in two parts
-    afterob = line2.split()                  # A list of parameters split on the basis of whitespace
-    params = []
-    paramlist = []
-    for parameter in afterob:
-        paramindex = parameter.find(',')
-        if not paramindex == -1:
-            paramlist = parameter.split(',')
-        else:                                # case of a single parameter
-            paramlist = [parameter]
-        for arg in paramlist:
-            params.append(arg)
-    # Add function name to list of tokens
-    for lexeme in beforeob:
-        tokens.append(lexeme)
-    # Add name of each parameter to the list of tokens
-    for lexeme in params:
-        tokens.append(lexeme)
-
-    return tokens
 
 
 def main():
@@ -161,7 +121,7 @@ def main():
     for filename in args.source:
 
         sourcefile = filename
-        if re.search(".rb", sourcefile):         # If the sourcefile contains '.rb', it's a ruby source file
+        if re.search('.rb$',sourcefile):         # If the sourcefile name ends with '.rb', it's a ruby source file
             print "\n"
             print 'Ruby source file:', sourcefile
             try:
@@ -174,28 +134,41 @@ def main():
             for x in xrange(0, 50):
                 print '-',
             print
-            tokens =[]
             while True:
-                line = source.readline()         # Read a line from the ruby source file
+                tokens =[]
+                line = source.readline()               # Read a line from the ruby source file
                 if not line: break
-                # print 'ln', ln, ':', line,      # print the line
-                ln += 1                          # Increment line number count
-                commbeg = line.find('#')         # Beginning of a comment
-                if not commbeg == -1:
-                    line = line[0:commbeg]       # Strip out the comment
+                # print 'ln', ln, ':', line,           # print the line
+                ln += 1                                # Increment line number count
 
-                if not line.find('(') == -1:
-                    tokens += functionRecognizer(line)
+                line = re.sub(r'#[^{].*$', "", line)   # Strip out the comments    
 
-                elif not line.find('\"') == -1:
-                    tokens += stringconstRecognizer(line)
+                for pun in SymTab.punctlist:
+                    line = line.replace(pun, ' ')      # Remove all punctuation and commas
 
-                else:
-                    tokens = line.split()            # [HOWTO] This splits only on the basis of whitespace characters. Need to remove brackets too
-                # for string in tokens:
-                #     for symbol in SymTab.punctlist:
-                #         if string.find(symbol) != -1: # [HOWTO] Now we know that the string has a symbol. Need to split the string and insert into the list again
-                #             
+                stringlist = re.findall(r'\"(.+?)\"',line)  # Creates a list of string literals
+
+                constlist =[]
+                for const in stringlist:
+                    # need to detect the pattern #{xyz} and |xyz| inside string literals
+                    line = line.replace(str(const), '')
+                    const = "'"+str(const)+"'"
+                    constlist.append(const)                 # Recognizing string literals
+
+                line = line.replace('""','')                # Removing junk double quotes from the stripped line
+                tokens += constlist
+
+                line = line.replace('(',' ')                # Remove braces - not required for lexical analysis
+                line = line.replace(')',' ')
+
+                for punct in SymTab.punctlist:
+                    line = line.replace(pun,' ')
+
+                for optor in SymTab.oplist:
+                    line = line.replace(optor,' '+optor+' ')
+
+                tokens += line.split()            # [HOWTO] This splits only on the basis of whitespace characters. Need to remove brackets too
+
                 for token in tokens:
                     SymTab.classify(lists, token)       # Analyzes the tokens
                 
