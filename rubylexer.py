@@ -15,8 +15,8 @@ class SymTab:
     """SymTab is the class holding the Symbol Table as a collection of three lists,
     one containing the tokens, another the type of the token, and the last one holding a unique ID for the token"""
     kwlist = ['BEGIN', 'END', '__ENCODING__', '__END__', '__FILE__', '__LINE__', 'alias', 'and', 'begin', 'break', 'case', 'class', 'def', 'defined?', 'do', 'else', 'elsif', 'end', 'ensure', 'false', 'for', 'if', 'in', 'module', 'next', 'nil', 'not', 'or', 'redo', 'rescue', 'retry', 'return', 'self', 'super', 'then', 'true', 'undef', 'unless', 'until', 'when', 'while', 'yield']
-    oplist = ['+','-','*','/','=','%','**','==','!=','>','>=','<','<=','<=>','===','.eql?','equal?','+=','-=','*=','/=','%=','**=','&','|','^','~','<<','>>','&&','||','!']
-    punctlist = [',','(',')', '{','}', ':', ';']
+    oplist = ['==','!=','>','>=','<=','<=>','===','.eql?','equal?','+=','-=','*=','/=','%=','**=','<<','>>','&&','||','!','+','-','*','/','=','%','**','<','&','|','^','~']
+    punctlist = [',','(',')', '{','}', ':', ';', '.']
     constlist = [str(i) for i in xrange(0,10)]
     # 1: [HOWTO] ensure longest match?
     # 2: [HOWTO] recognize ternary operator ?:
@@ -143,16 +143,24 @@ def main():
 
                 line = re.sub(r'#[^{].*$', "", line)   # Strip out the comments    
 
-                for pun in SymTab.punctlist:
-                    line = line.replace(pun, ' ')      # Remove all punctuation and commas
+                #for pun in SymTab.punctlist:
+                #    line = line.replace(pun, ' ')      # Remove all punctuation and commas
 
                 stringlist = re.findall(r'\"(.+?)\"',line)  # Creates a list of string literals
 
                 constlist =[]
-                for const in stringlist:
+                for constr in stringlist:
+                    line = line.replace(str(constr), '')
                     # need to detect the pattern #{xyz} and |xyz| inside string literals
-                    line = line.replace(str(const), '')
-                    const = "'"+str(const)+"'"
+                    strids = re.findall(r'#\{[a-zA-Z]*\}',constr)
+                    if len(strids) > 0:
+                        for var in strids:
+                            var, count = re.subn(r'#[{]', '', constr)
+                            var, count = re.subn(r'[}]', '', var)             # Strip out the unnecessary enclosing characters
+                            constr, count = re.subn(r'#[{][a-zA-Z]*[}]', '', constr)          # Remove the to-be-replaced variables from the string literal
+                            tokens += var
+                            
+                    const = "'"+str(constr)+"'"
                     constlist.append(const)                 # Recognizing string literals
 
                 line = line.replace('""','')                # Removing junk double quotes from the stripped line
@@ -161,8 +169,16 @@ def main():
                 line = line.replace('(',' ')                # Remove braces - not required for lexical analysis
                 line = line.replace(')',' ')
 
+                varids = re.findall(r'\|[a-zA-Z]*\|',line)
+                if len(varids) > 0:
+                    for var in varids:
+                        line = line.replace(var,'')
+                        tok, count = re.subn(r'[|]', '', var)             # Strip out the unnecessary enclosing characters
+                #        line, count = re.subn(r'[|][a-zA-Z]*[|]', '', line)          # Remove the to-be-replaced variables from the string literal
+                        tokens += tok
+
                 for punct in SymTab.punctlist:
-                    line = line.replace(pun,' ')
+                    line = line.replace(punct,' ')
 
                 for optor in SymTab.oplist:
                     line = line.replace(optor,' '+optor+' ')
