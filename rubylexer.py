@@ -147,18 +147,17 @@ def main():
                 #    line = line.replace(pun, ' ')      # Remove all punctuation and commas
 
                 stringlist = re.findall(r'\"(.+?)\"',line)  # Creates a list of string literals
-
                 constlist =[]
                 for constr in stringlist:
                     line = line.replace(str(constr), '')
                     # need to detect the pattern #{xyz} and |xyz| inside string literals
                     strids = re.findall(r'#\{[a-zA-Z]*\}',constr)
-                    if len(strids) > 0:
+                    if type(strids) == list and len(strids) > 0:
                         for var in strids:
-                            var, count = re.subn(r'#[{]', '', constr)
+                            var, count = re.subn(r'#[{]', '', var)
                             var, count = re.subn(r'[}]', '', var)             # Strip out the unnecessary enclosing characters
                             constr, count = re.subn(r'#[{][a-zA-Z]*[}]', '', constr)          # Remove the to-be-replaced variables from the string literal
-                            tokens += var
+                            tokens.append(var)
                             
                     const = "'"+str(constr)+"'"
                     constlist.append(const)                 # Recognizing string literals
