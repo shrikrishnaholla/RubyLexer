@@ -126,7 +126,7 @@ def main():
             except IOError:                      # If the input is invalid - file not found
                 print sourcefile, "doesn't seem to exist. Please retry"
                 continue
-            ln = 1
+
             print 'Token','\t\t\t','Type','\t\t\t\t\t','Token ID'
             for x in xrange(0, 50):
                 print '-',
@@ -135,19 +135,16 @@ def main():
                 tokens =[]
                 line = source.readline()               # Read a line from the ruby source file
                 if not line: break
-                # print 'ln', ln, ':', line,           # print the line
-                ln += 1                                # Increment line number count
 
                 line = re.sub(r'#[^{].*$', "", line)   # Strip out the comments    
-
-                #for pun in SymTab.punctlist:
-                #    line = line.replace(pun, ' ')      # Remove all punctuation and commas
 
                 stringlist = re.findall(r'\"(.+?)\"',line)  # Creates a list of string literals
                 constlist =[]
                 for constr in stringlist:
                     line = line.replace(str(constr), '')
                     # need to detect the pattern #{xyz} and |xyz| inside string literals
+
+                    # detection of #{xyz}
                     strids = re.findall(r'#\{[a-zA-Z]*\}',constr)
                     if type(strids) == list and len(strids) > 0:
                         for var in strids:
@@ -162,19 +159,16 @@ def main():
                 line = line.replace('""','')                # Removing junk double quotes from the stripped line
                 tokens += constlist
 
-                line = line.replace('(',' ')                # Remove braces - not required for lexical analysis
-                line = line.replace(')',' ')
-
+                #Detection of |xyz|
                 varids = re.findall(r'\|[a-zA-Z]*\|',line)
                 if len(varids) > 0:
                     for var in varids:
                         line = line.replace(var,'')
                         tok, count = re.subn(r'[|]', '', var)             # Strip out the unnecessary enclosing characters
-                #        line, count = re.subn(r'[|][a-zA-Z]*[|]', '', line)          # Remove the to-be-replaced variables from the string literal
                         tokens += tok
 
                 for punct in SymTab.punctlist:
-                    line = line.replace(punct,' ')
+                    line = line.replace(punct,' '+ punct + ' ')
 
                 for optor in SymTab.oplist:
                     line = line.replace(optor,' '+optor+' ')
