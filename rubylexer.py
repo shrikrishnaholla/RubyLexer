@@ -59,9 +59,9 @@ class SymTab:
         tokidlist = lists[7]
         done = False
         
-        if not string in toklist:                                     # [TODO] Use regexes instead of string comparison
+        if not string in toklist:
             toklist.append(string)
-            for kw in kwlist:                                         # The token is a keywor
+            for kw in kwlist:                                         # The token is a keyword
                 if re.match(re.escape(kw),string):
                     done = True
                     enumlist.append(TokenEnum.keyword)
@@ -173,7 +173,7 @@ def main():
                 for optor in SymTab.oplist:
                     line = line.replace(optor,' '+optor+' ')
 
-                tokens += line.split()            # [HOWTO] This splits only on the basis of whitespace characters. Need to remove brackets too
+                tokens += line.split()
 
                 for token in tokens:
                     SymTab.classify(lists, token)       # Analyzes the tokens
