@@ -23,15 +23,13 @@ class SymTab:
     toklist = []    # List of tokens
     enumlist = []   # Corresponding list to toklist, enumerating the type of the token
     tokidlist = []  # Corresponding list to both toklist and enumlist which contains the unique token id
-    idlist = []     # List of all unique ids generated
 
     @staticmethod
-    def randomIdGen(idlist):
-        while True:
-            iden = random.randint(1000,9999)
-            if not iden in idlist:
-                idlist.append(iden)
-                return iden
+    def idGen(string):
+        idnum = 0
+        for char in string:
+            idnum += ord(char)
+        return idnum
 
     @staticmethod
     def printer(toklist, enumlist, tokidlist, index):
@@ -59,7 +57,6 @@ class SymTab:
         punctlist = lists[5]
         constlist = lists[6]
         tokidlist = lists[7]
-        idlist = lists[8]
         done = False
         
         if not string in toklist:                                     # [TODO] Use regexes instead of string comparison
@@ -68,7 +65,7 @@ class SymTab:
                 if re.match(re.escape(kw),string):
                     done = True
                     enumlist.append(TokenEnum.keyword)
-                    tokidlist.append('KW'+str(SymTab.randomIdGen(idlist)))
+                    tokidlist.append('KW'+str(SymTab.idGen(string)))
                     break
 
             if not done:
@@ -76,7 +73,7 @@ class SymTab:
                     if re.match(re.escape(op),string):
                         done = True
                         enumlist.append(TokenEnum.operator)
-                        tokidlist.append('OP'+str(SymTab.randomIdGen(idlist)))
+                        tokidlist.append('OP'+str(SymTab.idGen(string)))
                         break
                 
             if not done:
@@ -84,7 +81,7 @@ class SymTab:
                     if re.match(re.escape(pn),string):
                         done =True
                         enumlist.append(TokenEnum.punctuation)
-                        tokidlist.append('PN'+str(SymTab.randomIdGen(idlist)))
+                        tokidlist.append('PN'+str(SymTab.idGen(string)))
                         break
             
             if not done:
@@ -92,17 +89,17 @@ class SymTab:
                     if re.match(re.escape(cn),string):
                         done =True
                         enumlist.append(TokenEnum.constant)
-                        tokidlist.append('CT'+str(SymTab.randomIdGen(idlist)))
+                        tokidlist.append('CT'+str(SymTab.idGen(string)))
                         break
 
                 if len(re.findall("'",string)) > 0:
                     enumlist.append(TokenEnum.constant)                   # The token is a string constant
-                    tokidlist.append('CT'+str(SymTab.randomIdGen(idlist)))
+                    tokidlist.append('CT'+str(SymTab.idGen(string)))
                     done = True                         
                     
             if not done:
                     enumlist.append(TokenEnum.identifier)
-                    tokidlist.append('ID'+str(SymTab.randomIdGen(idlist)))
+                    tokidlist.append('ID'+str(SymTab.idGen(string)))
 
         SymTab.printer(toklist, enumlist, tokidlist, toklist.index(string)) # Print the table
 
@@ -116,7 +113,7 @@ def main():
         help='A source to analyze', required=True)
     
     args = parser.parse_args()
-    lists = [SymTab.toklist, SymTab.enumlist, SymTab.tokidlist, SymTab.kwlist, SymTab.oplist, SymTab.punctlist, SymTab.constlist, SymTab.tokidlist, SymTab.idlist]
+    lists = [SymTab.toklist, SymTab.enumlist, SymTab.tokidlist, SymTab.kwlist, SymTab.oplist, SymTab.punctlist, SymTab.constlist, SymTab.tokidlist]
     
     for filename in args.source:
 
@@ -156,7 +153,7 @@ def main():
                         for var in strids:
                             var, count = re.subn(r'#[{]', '', var)
                             var, count = re.subn(r'[}]', '', var)             # Strip out the unnecessary enclosing characters
-                            constr, count = re.subn(r'#[{][a-zA-Z]*[}]', '', constr)          # Remove the to-be-replaced variables from the string literal
+                            constr, count = re.subn(r'#[{][a-zA-Z]*[}]', '<var>', constr)          # Remove the to-be-replaced variables from the string literal
                             tokens.append(var)
                             
                     const = "'"+str(constr)+"'"
