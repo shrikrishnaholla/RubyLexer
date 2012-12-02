@@ -18,8 +18,6 @@ class SymTab:
     oplist = ['==','!=','>','>=','<=','<=>','===','.eql?','equal?','+=','-=','*=','/=','%=','**=','<<','>>','&&','||','!','+','-','*','/','=','%','**','<','&','|','^','~']
     punctlist = [',','(',')', '{','}', ':', ';', '.']
     constlist = [str(i) for i in xrange(0,10)]
-    # 1: [HOWTO] ensure longest match?
-    # 2: [HOWTO] recognize ternary operator ?:
     toklist = []    # List of tokens
     enumlist = []   # Corresponding list to toklist, enumerating the type of the token
     tokidlist = []  # Corresponding list to both toklist and enumlist which contains the unique token id
