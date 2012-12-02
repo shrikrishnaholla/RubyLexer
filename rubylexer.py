@@ -9,7 +9,8 @@ class TokenEnum(object):
     operator = 1
     constant = 2
     punctuation = 3
-    identifier = 4
+    strconst = 4
+    identifier = 5
         
 class SymTab:
     """SymTab is the class holding the Symbol Table as a collection of three lists,
@@ -37,12 +38,17 @@ class SymTab:
         elif enumlist[index] == 1:
             print 'operator',
         elif enumlist[index] == 2:
-            print 'constant',
+            print 'number',
         elif enumlist[index] == 3:
             print 'punctuation',
+        elif enumlist[index] == 4:
+            print 'string literal',
         else:
             print 'identifier',
         print '\t\t\t\t', tokidlist[index]
+        for x in xrange(0, 50):
+            print '-',
+        print
         
     @staticmethod
     def classify(lists, string):
@@ -71,7 +77,7 @@ class SymTab:
                     if re.match(re.escape(op),string):
                         done = True
                         enumlist.append(TokenEnum.operator)
-                        tokidlist.append('OP'+str(SymTab.idGen(string)))
+                        tokidlist.append('')                              # 'OP'+str(SymTab.idGen(string))
                         break
                 
             if not done:
@@ -79,7 +85,7 @@ class SymTab:
                     if re.match(re.escape(pn),string):
                         done =True
                         enumlist.append(TokenEnum.punctuation)
-                        tokidlist.append('PN'+str(SymTab.idGen(string)))
+                        tokidlist.append('')                              # 'PN'+str(SymTab.idGen(string))
                         break
             
             if not done:
@@ -87,11 +93,11 @@ class SymTab:
                     if re.match(re.escape(cn),string):
                         done =True
                         enumlist.append(TokenEnum.constant)
-                        tokidlist.append('CT'+str(SymTab.idGen(string)))
+                        tokidlist.append(string)
                         break
 
                 if len(re.findall("'",string)) > 0:
-                    enumlist.append(TokenEnum.constant)                   # The token is a string constant
+                    enumlist.append(TokenEnum.strconst)                   # The token is a string constant
                     tokidlist.append('CT'+str(SymTab.idGen(string)))
                     done = True                         
                     
@@ -125,9 +131,12 @@ def main():
                 print sourcefile, "doesn't seem to exist. Please retry"
                 continue
 
+            for x in xrange(0, 50):
+                print '=',
+            print
             print 'Token','\t\t\t','Type','\t\t\t\t\t','Token ID'
             for x in xrange(0, 50):
-                print '-',
+                print '=',
             print
             while True:
                 tokens =[]
